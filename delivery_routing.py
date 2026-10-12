@@ -131,3 +131,19 @@ class AStarSearch:
             node = came_from[node]
         path.reverse()
         return SearchResult(path, network.path_distance(path), expanded)
+
+
+class Observer:
+
+    def update(self, event: str, message: str) -> None:
+        raise NotImplementedError
+
+
+class Driver(Observer):
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def update(self, event: str, message: str) -> None:
+        if event == "route_recalculated":
+            print(f"Driver {self.name} received event '{event}': {message}")
