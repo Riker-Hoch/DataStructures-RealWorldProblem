@@ -91,3 +91,43 @@ class BreadthFirstSearch:
             node = parent[node]
         path.reverse()
         return SearchResult(path, network.path_distance(path), expanded)
+
+
+class AStarSearch:
+
+    @staticmethod
+    def search(
+        network: DeliveryNetwork, start: str, goal: str
+    ) -> Optional[SearchResult]:
+        frontier = []
+        heappush(frontier, (network.heuristic(start, goal), 0.0, start))
+        came_from = {start: None}
+        best_cost = {start: 0.0}
+        expanded = 0
+
+        while frontier:
+            _, cost_so_far, current = heappop(frontier)
+            if cost_so_far != best_cost.get(current):
+                continue
+
+            expanded += 1
+            if current == goal:
+                break
+
+            for neighbor, road_cost in network.graph[current].items():
+                new_cost = cost_so_far + road_cost
+                if new_cost < best_cost.get(neighbor, float("inf")):
+                    best_cost[neighbor] = new_cost
+                    came_from[neighbor] = current
+                    priority = new_cost + network.heuristic(neighbor, goal)
+                    heappush(frontier, (priority, new_cost, neighbor))
+
+        if goal not in came_from:
+            return None
+        path = []
+        node = goal
+        while node is not None:
+            path.append(node)
+            node = came_from[node]
+        path.reverse()
+        return SearchResult(path, network.path_distance(path), expanded)
