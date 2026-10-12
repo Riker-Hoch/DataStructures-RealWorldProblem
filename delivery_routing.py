@@ -51,10 +51,43 @@ def _add_road(self, a: str, b: str, km: float) -> None:
     self.graph[a][b] = km
     self.graph[b][a] = km
 
+
 def heuristic(self, node: str, goal: str) -> float:
     x1, y1 = self.coordinates[node]
     x2, y2 = self.coordinates[goal]
     return 0.5 * hypot(x2 - x1, y2 - y1)
 
+
 def path_distance(self, path: List[str]) -> float:
     return sum(self.graph[a][b] for a, b in zip(path, path[1:]))
+
+
+class BreadthFirstSearch:
+
+    @staticmethod
+    def search(
+        network: DeliveryNetwork, start: str, goal: str
+    ) -> Optional[SearchResult]:
+        queue = deque([start])
+        parent = {start: None}
+        expanded = 0
+
+        while queue:
+            current = queue.popleft()
+            expanded += 1
+            if current == goal:
+                break
+            for neighbor in network.graph[current]:
+                if neighbor not in parent:
+                    parent[neighbor] = current
+                    queue.append(neighbor)
+
+        if goal not in parent:
+            return None
+        path = []
+        node = goal
+        while node is not None:
+            path.append(node)
+            node = parent[node]
+        path.reverse()
+        return SearchResult(path, network.path_distance(path), expanded)
