@@ -147,3 +147,48 @@ class Driver(Observer):
     def update(self, event: str, message: str) -> None:
         if event == "route_recalculated":
             print(f"Driver {self.name} received event '{event}': {message}")
+
+
+class Customer(Observer):
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def update(self, event: str, message: str) -> None:
+        if event == "delivery_completed":
+            print(f"[Customer Notification] {self.name}: {message}")
+
+
+class DeliverySystem:
+
+    def __init__(self, network: DeliveryNetwork):
+        self.network = network
+        self.observers: List[Observer] = []
+
+    def subscribe(self, observer: Observer) -> None:
+        if observer not in self.observers:
+            self.observers.append(observer)
+
+    def notify(self, event: str, message: str) -> None:
+        for observer in self.observers:
+            observer.update(event, message)
+
+    def recalculate_route(self, start: str, goal: str) -> Optional[SearchResult]:
+        result = AStarSearch.search(self.network, start, goal)
+        if result:
+            route = " -> ".join(result.path)
+            self.notify(
+                "route_recalculated",
+                f"New route: {route} ({result.distance_km:.1f} km)",
+            )
+        return result
+
+
+def display_result(label: str, result: Optional[SearchResult]) -> None:
+    if result is None:
+        print(f"{label}: No route found.")
+        return
+    print(f"{label} path: {' -> '.join(result.path)}")
+    print(f"{label} distance: {result.distance_km:.1f} km")
+    print(f"{label} nodes expanded: {result.nodes_expanded}")
+    print()
